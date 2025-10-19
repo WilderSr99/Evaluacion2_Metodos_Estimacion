@@ -20,21 +20,138 @@ editor: visual
 
 Breve presentación del objetivo de esta sección:
 
-> En esta primera parte se busca consolidar los conceptos fundamentales del muestreo probabilístico, diferenciando correctamente los componentes estructurales de una encuesta (población, marco, dominio, estrato) y los efectos que los distintos diseños muestrales tienen sobre la varianza de las estimaciones.
+> En esta primera sección se abordan dos aspectos esenciales del diseño muestral: el efecto del muestreo estratificado sobre la varianza de las estimaciones y las condiciones bajo las cuales el muestreo por conglomerados puede mejorar la precisión. Ambos conceptos permiten comprender cómo la estructura poblacional y la homogeneidad interna de las unidades influyen en la eficiencia estadística de los estimadores.
 
-### Pregunta 1
+### Pregunta 3
 
-**Texto de la pregunta seleccionada**\
-**Respuesta (máx. 100 palabras)**
+**¿Qué esperaría que ocurra con la varianza de una variable cuando se aplique un muestreo aleatorio estratificado (MAE) en lugar de un muestreo aleatorio simple (MAS)? ¿Por qué?**\
 
-### Pregunta 2
+> Al aplicar un muestreo aleatorio estratificado, se espera que la varianza de las estimaciones disminuya respecto a un muestreo aleatorio simple. Esto ocurre porque los estratos agrupan unidades internamente homogéneas y externamente diferentes, reduciendo la variabilidad dentro de cada subgrupo. Por ejemplo, al estimar el ingreso medio dividiendo la población por nivel educativo, se obtiene menor dispersión dentro de cada estrato y, por tanto, un estimador más preciso y eficiente. En síntesis, el MAE mejora la precisión al aprovechar información estructural de la población.
+>
+> Nota: *se añade un ejemplo simple.*
 
-**Texto de la pregunta seleccionada**\
-**Respuesta (máx. 100 palabras)**
+```{r}
+# para ejemplificar la resuesta usamos este ejemplo de juguete. 
+set.seed(2025)
+
+# Población sintética: ingreso por nivel educativo
+N <- 15000
+prop <- c(Primaria=.30, Secundaria=.50, Superior=.20)
+N_h <- round(N*prop)
+
+ing_P <- rnorm(N_h["Primaria"],   mean=40, sd=8)
+ing_S <- rnorm(N_h["Secundaria"], mean=55, sd=8)
+ing_U <- rnorm(N_h["Superior"],   mean=70, sd=8)
+
+nivel   <- c(rep("Primaria", N_h["Primaria"]),
+             rep("Secundaria", N_h["Secundaria"]),
+             rep("Superior", N_h["Superior"]))
+ingreso <- c(ing_P, ing_S, ing_U)
+
+mu_pobl <- mean(ingreso)
+
+# Parámetros de simulación
+n_total <- 600       # tamaño muestral total
+R <- 300             # réplicas
+
+# MAS: muestra simple sin estratos
+mas_est <- replicate(R, mean(sample(ingreso, n_total)))
+
+# MAE: proporcional por nivel educativo
+n_h <- round(n_total * prop)  # asignación proporcional simple
+mae_est <- replicate(R, {
+  mP <- mean(sample(ing_P, n_h["Primaria"]))
+  mS <- mean(sample(ing_S, n_h["Secundaria"]))
+  mU <- mean(sample(ing_U, n_h["Superior"]))
+  # ponderación por tamaño de estrato en la población
+  sum(c(prop["Primaria"], prop["Secundaria"], prop["Superior"])
+      * c(mP, mS, mU))
+})
+
+# Resumen numérico simple
+var_mas <- var(mas_est)
+var_mae <- var(mae_est)
+se_mas  <- sqrt(var_mas)
+se_mae  <- sqrt(var_mae)
+ef_rel  <- var_mas/var_mae  
+
+cat("Media poblacional:", round(mu_pobl,2), "\n")
+cat("MAS -> SE:", round(se_mas,4), " Var:", round(var_mas,6), "\n")
+cat("MAE -> SE:", round(se_mae,4), " Var:", round(var_mae,6), "\n")
+cat("Eficiencia relativa (Var(MAS)/Var(MAE)):", round(ef_rel,2), "\n")
+
+# Gráfico simple de densidades (base R)
+plot(density(mas_est),
+     main = "Ingreso medio: MAS vs MAE",
+     xlab = "Media estimada",
+     col = "skyblue", lwd = 2, # azul
+     ylim = c(0, max(density(mas_est)$y, density(mae_est)$y) * 1.1))
+
+lines(density(mae_est), col = "red", lwd = 2) # rojo
+abline(v = mu_pobl, col = "gray30", lwd = 2, lty = 2) # línea poblacional
+legend("topright", legend = c("MAS", "MAE", "Media poblacional"),
+       col = c("skyblue", "red", "gray30"),
+       lwd = 2, lty = c(1,1,2), bty = "n")
+ 
+```
+
+> -   Con el ejemplo simple,se aprecia que la media poblacional del ingreso es de 53.51. Al comparar los métodos de estimación, se observa que el muestreo aleatorio simple (MAS) presenta una varianza de 0.2942 y un error estándar de 0.5424, mientras que el muestreo aleatorio estratificado (MAE) muestra una varianza de 0.0999 y un error estándar de 0.316. Esto indica que el MAE produce estimaciones más precisas y menos dispersas que el MAS. Además, la eficiencia relativa entre ambos métodos es de 2.95, lo que significa que el muestreo estratificado es casi tres veces más eficiente que el muestreo simple para estimar la media poblacional del ingreso.
+> -   Ademas se observa que la curva del MAE es más angosta (menor varianza), por lo que el muestreo estratificado aumenta la precisión de las estimaciones.
+
+### Pregunta 4
+
+**¿En qué caso el muestreo aleatorio por conglomerados tiende a aumentar la precisión de las estimaciones?**\
+
+> El muestreo por conglomerados tiende a aumentar la precisión solo cuando los conglomerados son internamente heterogéneos y entre ellos homogéneos. En ese escenario, cada conglomerado representa bien la diversidad de la población. Por ejemplo, al estimar el nivel de alfabetización seleccionando manzanas urbanas donde conviven diversos grupos socioeconómicos, cada conglomerado captura gran parte de la variabilidad total. Sin embargo, si los conglomerados son muy homogéneos internamente (por ejemplo, barrios segregados), la correlación intracluster aumenta y la precisión disminuye. Por ello, su eficiencia depende directamente de la estructura de variabilidad poblacional.
 
 *(Puedes añadir tablas o esquemas ilustrativos si ayudan a la claridad conceptual.)*
 
-## **Parte II. Aplicación práctica con datos censales (7 puntos)**
+```{r}
+set.seed(2025)
+
+# Población: 100 manzanas, 20 personas por manzana
+manzanas <- 1:100
+poblacion <- data.frame(
+  manzana = rep(manzanas, each = 20),
+  # Escenario A: manzanas diversas (heterogéneas dentro)
+  alfabet_A = rep(rnorm(100, 80, 10), each = 20) + rnorm(2000, 0, 8),
+  # Escenario B: manzanas parecidas (homogéneas dentro)
+  alfabet_B = rep(rnorm(100, 80, 10), each = 20) + rnorm(2000, 0, 2)
+)
+
+# Muestreo por conglomerados (10 manzanas)
+muestreo_cluster <- function(var){
+  mean(poblacion[poblacion$manzana %in% sample(1:100, 10), var])
+}
+
+# Muestreo simple con mismo tamaño (200 personas)
+muestreo_simple <- function(var){
+  mean(sample(poblacion[[var]], 200))
+}
+
+# Repetimos
+R <- 200
+clust_A <- replicate(R, muestreo_cluster("alfabet_A"))
+clust_B <- replicate(R, muestreo_cluster("alfabet_B"))
+mas_A   <- replicate(R, muestreo_simple("alfabet_A"))
+mas_B   <- replicate(R, muestreo_simple("alfabet_B"))
+
+# Gráfico 
+par(mfrow=c(1,2))
+plot(density(clust_A), main="A: manzanas heterogéneas", xlab="Media estimada", col="blue", lwd=2)
+lines(density(mas_A), col="red", lwd=2)
+legend("topright", legend=c("Cluster","MAS"), col=c("blue","red"), lwd=2, bty="n")
+
+plot(density(clust_B), main="B: manzanas homogéneas", xlab="Media estimada", col="blue", lwd=2)
+lines(density(mas_B), col="red", lwd=2)
+legend("topright", legend=c("Cluster","MAS"), col=c("blue","red"), lwd=2, bty="n")
+```
+
+> -   En el escenario A, donde las manzanas son heterogéneas internamente, el muestreo por conglomerados produce estimaciones con menor varianza que el muestreo aleatorio simple (MAS), evidenciando una mayor precisión. Esto se debe a que cada manzana refleja bien la diversidad de la población.
+> -   En contraste, en el escenario B, donde las manzanas son homogéneas, el muestreo por conglomerados resulta en estimaciones con mayor varianza que el MAS, indicando una menor precisión. Aquí, la similitud interna de las manzanas limita la representatividad de la muestra.
+> -   Estos ejemplos ilustran que el muestreo por conglomerados puede mejorar la precisión solo cuando los conglomerados son internamente diversos y entre ellos similares.
+
+# **Parte II. Aplicación práctica con datos censales (7 puntos)**
 
 ### Objetivo
 
@@ -81,7 +198,7 @@ set.seed(2025)
 
 > Discusión breve sobre cómo el estratificado mejora la precisión (menor varianza) y cómo el deff refleja el impacto del diseño sobre la eficiencia del muestreo.
 
-## **Parte III. Diseño muestral de una encuesta del INEI (3 puntos)**
+# **Parte III. Diseño muestral de una encuesta del INEI (3 puntos)**
 
 ### Introducción
 
@@ -107,7 +224,7 @@ b <- 45
 
 > Se comenta la implicancia del diseño sobre la precisión de los estimadores y la importancia del uso de pesos y estratos en los análisis inferenciales.
 
-## **Parte IV. Discusión aplicada (6 puntos)**
+# **Parte IV. Discusión aplicada (6 puntos)**
 
 ### Introducción
 
@@ -133,6 +250,6 @@ Por qué un muestreo complejo puede requerir más tamaño que uno simple.
 -   Introducción a modelos SAE (*Fay-Herriot*, *EBLUP*, *Bayesianos*).
 -   Ejemplo de uso de información auxiliar (censos, registros, teledetección).
 
-## **Conclusiones generales**
+# **Conclusiones generales**
 
 > Resumen de aprendizajes conceptuales y prácticos: - Importancia del diseño muestral en la precisión. - Utilidad de los métodos de estratificación y ponderación. - Valor del enfoque probabilístico para garantizar inferencia válida. - Relevancia de la comunicación técnica adaptada a diferentes públicos. - Aplicación de métodos avanzados para estimaciones en dominios pequeños.
