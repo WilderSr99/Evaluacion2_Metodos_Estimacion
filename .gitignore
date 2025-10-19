@@ -1,4 +1,46 @@
-.Rproj.user
+cat > .gitignore << 'EOF'
+# ================================
+# Configuración R / Quarto
+# ================================
+
+# Carpetas de RStudio
+.Rproj.user/
 .Rhistory
 .RData
 .Ruserdata
+
+# Archivos temporales y de entorno
+.Rapp.history
+.RDataTmp
+.Rcheck/
+
+# Archivos generados por Quarto / knitr
+*_cache/
+cache/
+*_files/
+
+# Archivos de salida
+*.html
+*.pdf
+*.docx
+*.zip
+*.log
+*.aux
+*.out
+*.toc
+
+# Datos locales o pesados
+data/
+*.csv
+*.xlsx
+*.sav
+*.dta
+*.rds
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Configuraciones locales o privadas
+.env
+EOF
