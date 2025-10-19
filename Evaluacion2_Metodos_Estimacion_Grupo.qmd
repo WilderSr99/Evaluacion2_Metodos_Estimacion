@@ -10,23 +10,129 @@ format: pdf
 editor: visual
 ---
 
-## Quarto
+# Resumen ejecutivo
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+> Este informe presenta el desarrollo integral de la Evaluación 2 del curso Métodos de Estimación Estadística. Se abordan conceptos teóricos sobre poblaciones, estratos y diseños muestrales, la aplicación práctica de un muestreo estratificado usando datos censales de Lima Metropolitana, la declaración del diseño muestral de una encuesta del INEI, y la discusión de casos aplicados sobre tamaño muestral y estimaciones en dominios pequeños. Los resultados obtenidos reflejan la importancia del diseño muestral en la precisión y representatividad de las estimaciones.
 
-## Running Code
+# **Parte I. Fundamentos conceptuales (4 puntos)**
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+## Introducción teórica
+
+Breve presentación del objetivo de esta sección:
+
+> En esta primera parte se busca consolidar los conceptos fundamentales del muestreo probabilístico, diferenciando correctamente los componentes estructurales de una encuesta (población, marco, dominio, estrato) y los efectos que los distintos diseños muestrales tienen sobre la varianza de las estimaciones.
+
+### Pregunta 1
+
+**Texto de la pregunta seleccionada**\
+**Respuesta (máx. 100 palabras)**
+
+### Pregunta 2
+
+**Texto de la pregunta seleccionada**\
+**Respuesta (máx. 100 palabras)**
+
+*(Puedes añadir tablas o esquemas ilustrativos si ayudan a la claridad conceptual.)*
+
+## **Parte II. Aplicación práctica con datos censales (7 puntos)**
+
+### Objetivo
+
+> Aplicar el muestreo estratificado utilizando el Censo Nacional de Población y Vivienda 2017 (Lima Metropolitana) para estimar el porcentaje y total de personas ocupadas según grupo de edad, comparando su precisión con un muestreo aleatorio simple mediante el efecto de diseño.
+
+### Base de datos y variables
+
+-   Fuente: Censo 2017 (Lima Metropolitana)
+-   Variables utilizadas: `c5_p4_1` Edad Variable de condición de actividad “trabaja” (1 si trabaja, 0 si no) `grupo_edad` (4 categorías)
+
+### Metodología
+
+1.  Limpieza y transformación de datos.
+2.  Definición de estratos (`grupo_edad`).
+3.  Selección de muestra estratificada (semilla 2025).
+4.  Declaración del diseño muestral con el paquete `survey`.
+5.  Estimaciones de porcentaje y total.
+6.  Cálculo del efecto de diseño y comentario interpretativo.
+
+### Código R (documentado y comentado)
 
 ```{r}
-1 + 1
+x <- 2
+y <- 5
+z <- x+y
+z
+
+# Cargar paquetes
+library(dplyr)
+library(survey)
+
+# Definir variables
+set.seed(2025)
+# ...
 ```
 
-You can add options to executable code like this
+### Resultados
+
+-   Tabla 1: % de personas que trabajan por grupo de edad
+-   Tabla 2: Total estimado de personas que trabajan en Lima Metropolitana
+-   Tabla 3: Efecto de diseño (deff) respecto al MAS
+
+### Comentario analítico
+
+> Discusión breve sobre cómo el estratificado mejora la precisión (menor varianza) y cómo el deff refleja el impacto del diseño sobre la eficiencia del muestreo.
+
+## **Parte III. Diseño muestral de una encuesta del INEI (3 puntos)**
+
+### Introducción
+
+> En esta sección se analiza y declara el diseño muestral de la encuesta asignada al grupo, siguiendo su ficha técnica publicada por el INEI.
+
+### Descripción del diseño
+
+-   Tipo de muestreo: probabilístico, estratificado, multietápico.
+-   Unidades de muestreo (UPM, UMS, hogares, personas).
+-   Estratificación (urbano/rural, región natural, tamaño de población).
+-   Factor de expansión (peso de encuesta).
+-   Periodo y cobertura geográfica.
+
+### Declaración del diseño en R
 
 ```{r}
-#| echo: false
-2 * 2
+v <- 43
+b <- 45
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+### Interpretación
+
+> Se comenta la implicancia del diseño sobre la precisión de los estimadores y la importancia del uso de pesos y estratos en los análisis inferenciales.
+
+## **Parte IV. Discusión aplicada (6 puntos)**
+
+### Introducción
+
+> En esta sección se desarrollan dos casos aplicados vinculados al diseño y la representatividad de encuestas nacionales, con el objetivo de comunicar resultados de manera clara tanto a públicos técnicos como a tomadores de decisiones.
+
+### Pregunta 1 — Tamaño muestral y efecto de diseño
+
+**Redacción (máx. 500 palabras)**\
+Explicación intuitiva para policymakers sobre:
+
+```         
+Por qué un muestreo complejo puede requerir más tamaño que uno simple.
+```
+
+-   Conceptos de `n efectivo`, `ρ (intracluster)` y `deff`.
+-   Implicaciones prácticas en costo y precisión.
+
+### Pregunta 2 — Estimaciones distritales en dominios menores
+
+**Redacción (máx. 500 palabras)**
+
+-   Explicación de por qué no se puede inferir distritalmente con la ENA.
+-   Introducción a modelos SAE (*Fay-Herriot*, *EBLUP*, *Bayesianos*).
+-   Ejemplo de uso de información auxiliar (censos, registros, teledetección).
+
+## **Conclusiones generales**
+
+> Resumen de aprendizajes conceptuales y prácticos: - Importancia del diseño muestral en la precisión. - Utilidad de los métodos de estratificación y ponderación. - Valor del enfoque probabilístico para garantizar inferencia válida. - Relevancia de la comunicación técnica adaptada a diferentes públicos. - Aplicación de métodos avanzados para estimaciones en dominios pequeños.
