@@ -14,6 +14,8 @@ editor: visual
 
 > Este informe presenta el desarrollo integral de la Evaluación 2 del curso Métodos de Estimación Estadística. Se abordan conceptos teóricos sobre poblaciones, estratos y diseños muestrales, la aplicación práctica de un muestreo estratificado usando datos censales de Lima Metropolitana, la declaración del diseño muestral de una encuesta del INEI, y la discusión de casos aplicados sobre tamaño muestral y estimaciones en dominios pequeños. Los resultados obtenidos reflejan la importancia del diseño muestral en la precisión y representatividad de las estimaciones.
 
+------------------------------------------------------------------------
+
 # **Parte I. Fundamentos conceptuales (4 puntos)**
 
 ## Introducción teórica
@@ -22,13 +24,11 @@ Breve presentación del objetivo de esta sección:
 
 > En esta primera sección se abordan dos aspectos esenciales del diseño muestral: el efecto del muestreo estratificado sobre la varianza de las estimaciones y las condiciones bajo las cuales el muestreo por conglomerados puede mejorar la precisión. Ambos conceptos permiten comprender cómo la estructura poblacional y la homogeneidad interna de las unidades influyen en la eficiencia estadística de los estimadores.
 
-### Pregunta 3
+## Pregunta 3
 
 **¿Qué esperaría que ocurra con la varianza de una variable cuando se aplique un muestreo aleatorio estratificado (MAE) en lugar de un muestreo aleatorio simple (MAS)? ¿Por qué?**\
 
-> Al aplicar un muestreo aleatorio estratificado, se espera que la varianza de las estimaciones disminuya respecto a un muestreo aleatorio simple. Esto ocurre porque los estratos agrupan unidades internamente homogéneas y externamente diferentes, reduciendo la variabilidad dentro de cada subgrupo. Por ejemplo, al estimar el ingreso medio dividiendo la población por nivel educativo, se obtiene menor dispersión dentro de cada estrato y, por tanto, un estimador más preciso y eficiente. En síntesis, el MAE mejora la precisión al aprovechar información estructural de la población.
->
-> Nota: *se añade un ejemplo simple.*
+> Al aplicar un muestreo aleatorio estratificado, se espera que la varianza de las estimaciones disminuya respecto a un muestreo aleatorio simple. Esto ocurre porque los estratos agrupan unidades internamente homogéneas y externamente diferentes, reduciendo la variabilidad dentro de cada subgrupo. Por ejemplo, al estimar el ingreso medio dividiendo la población por nivel educativo, se obtiene menor dispersión dentro de cada estrato y, por tanto, un estimador más preciso y eficiente. En síntesis, el MAE mejora la precisión al aprovechar información estructural de la población. Nota: *se añade un ejemplo simple.*
 
 ```{r}
 # para ejemplificar la resuesta usamos este ejemplo de juguete. 
@@ -95,10 +95,10 @@ legend("topright", legend = c("MAS", "MAE", "Media poblacional"),
  
 ```
 
-> -   Con el ejemplo simple,se aprecia que la media poblacional del ingreso es de 53.51. Al comparar los métodos de estimación, se observa que el muestreo aleatorio simple (MAS) presenta una varianza de 0.2942 y un error estándar de 0.5424, mientras que el muestreo aleatorio estratificado (MAE) muestra una varianza de 0.0999 y un error estándar de 0.316. Esto indica que el MAE produce estimaciones más precisas y menos dispersas que el MAS. Además, la eficiencia relativa entre ambos métodos es de 2.95, lo que significa que el muestreo estratificado es casi tres veces más eficiente que el muestreo simple para estimar la media poblacional del ingreso.
-> -   Ademas se observa que la curva del MAE es más angosta (menor varianza), por lo que el muestreo estratificado aumenta la precisión de las estimaciones.
+> -   *Con el ejemplo simple, se aprecia que la media poblacional del ingreso es de 53.51. Al comparar los métodos de estimación, se observa que el muestreo aleatorio simple (MAS) presenta una varianza de 0.2942 y un error estándar de 0.5424, mientras que el muestreo aleatorio estratificado (MAE) muestra una varianza de 0.0999 y un error estándar de 0.316. Esto indica que el MAE produce estimaciones más precisas y menos dispersas que el MAS. Además, la eficiencia relativa entre ambos métodos es de 2.95, lo que significa que el muestreo estratificado es casi tres veces más eficiente que el muestreo simple para estimar la media poblacional del ingreso.*
+> -   *Ademas se observa que la curva del MAE es más angosta (menor varianza), por lo que el muestreo estratificado aumenta la precisión de las estimaciones.*
 
-### Pregunta 4
+## Pregunta 4
 
 **¿En qué caso el muestreo aleatorio por conglomerados tiende a aumentar la precisión de las estimaciones?**\
 
@@ -138,31 +138,38 @@ mas_B   <- replicate(R, muestreo_simple("alfabet_B"))
 
 # Gráfico 
 par(mfrow=c(1,2))
-plot(density(clust_A), main="A: manzanas heterogéneas", xlab="Media estimada", col="blue", lwd=2)
+plot(density(clust_A), main="A: manzanas heterogéneas", 
+     xlab="Media estimada", 
+     col="skyblue", lwd=2)
 lines(density(mas_A), col="red", lwd=2)
-legend("topright", legend=c("Cluster","MAS"), col=c("blue","red"), lwd=2, bty="n")
+legend("topleft", legend=c("Cluster","MAS"), 
+       col=c("skyblue","red"), lwd=1, bty="n")
 
-plot(density(clust_B), main="B: manzanas homogéneas", xlab="Media estimada", col="blue", lwd=2)
+plot(density(clust_B), main="B: manzanas homogéneas", xlab="Media estimada", 
+     col="skyblue", lwd=2)
 lines(density(mas_B), col="red", lwd=2)
-legend("topright", legend=c("Cluster","MAS"), col=c("blue","red"), lwd=2, bty="n")
+legend("topleft", legend=c("Cluster","MAS"), 
+       col=c("skyblue","red"), lwd=1, bty="n")
 ```
 
-> -   En el escenario A, donde las manzanas son heterogéneas internamente, el muestreo por conglomerados produce estimaciones con menor varianza que el muestreo aleatorio simple (MAS), evidenciando una mayor precisión. Esto se debe a que cada manzana refleja bien la diversidad de la población.
-> -   En contraste, en el escenario B, donde las manzanas son homogéneas, el muestreo por conglomerados resulta en estimaciones con mayor varianza que el MAS, indicando una menor precisión. Aquí, la similitud interna de las manzanas limita la representatividad de la muestra.
-> -   Estos ejemplos ilustran que el muestreo por conglomerados puede mejorar la precisión solo cuando los conglomerados son internamente diversos y entre ellos similares.
+> -   *En el escenario A, donde las manzanas son heterogéneas internamente, el muestreo por conglomerados produce estimaciones con menor varianza que el muestreo aleatorio simple (MAS), evidenciando una mayor precisión. Esto se debe a que cada manzana refleja bien la diversidad de la población.*
+> -   *En contraste, en el escenario B, donde las manzanas son homogéneas, el muestreo por conglomerados resulta en estimaciones con mayor varianza que el MAS, indicando una menor precisión. Aquí, la similitud interna de las manzanas limita la representatividad de la muestra.*
+> -   *Estos ejemplos ilustran que el muestreo por conglomerados puede mejorar la precisión solo cuando los conglomerados son internamente diversos y entre ellos similares.*
+
+------------------------------------------------------------------------
 
 # **Parte II. Aplicación práctica con datos censales (7 puntos)**
 
-### Objetivo
+## Objetivo
 
 > Aplicar el muestreo estratificado utilizando el Censo Nacional de Población y Vivienda 2017 (Lima Metropolitana) para estimar el porcentaje y total de personas ocupadas según grupo de edad, comparando su precisión con un muestreo aleatorio simple mediante el efecto de diseño.
 
-### Base de datos y variables
+## Base de datos y variables
 
 -   Fuente: Censo 2017 (Lima Metropolitana)
 -   Variables utilizadas: `c5_p4_1` Edad Variable de condición de actividad “trabaja” (1 si trabaja, 0 si no) `grupo_edad` (4 categorías)
 
-### Metodología
+## Metodología
 
 1.  Limpieza y transformación de datos.
 2.  Definición de estratos (`grupo_edad`).
@@ -171,7 +178,7 @@ legend("topright", legend=c("Cluster","MAS"), col=c("blue","red"), lwd=2, bty="n
 5.  Estimaciones de porcentaje y total.
 6.  Cálculo del efecto de diseño y comentario interpretativo.
 
-### Código R (documentado y comentado)
+## Código R (documentado y comentado)
 
 ```{r}
 x <- 2
@@ -188,68 +195,195 @@ set.seed(2025)
 # ...
 ```
 
-### Resultados
+## Resultados
 
 -   Tabla 1: % de personas que trabajan por grupo de edad
 -   Tabla 2: Total estimado de personas que trabajan en Lima Metropolitana
 -   Tabla 3: Efecto de diseño (deff) respecto al MAS
 
-### Comentario analítico
+------------------------------------------------------------------------
+
+## Comentario analítico
 
 > Discusión breve sobre cómo el estratificado mejora la precisión (menor varianza) y cómo el deff refleja el impacto del diseño sobre la eficiencia del muestreo.
 
+------------------------------------------------------------------------
+
 # **Parte III. Diseño muestral de una encuesta del INEI (3 puntos)**
 
-### Introducción
+## Introducción
 
-> En esta sección se analiza y declara el diseño muestral de la encuesta asignada al grupo, siguiendo su ficha técnica publicada por el INEI.
+> En esta sección se analiza y declara el diseño muestral de la encuesta asignada al grupo **(ENEVIC)**, siguiendo su ficha técnica publicada por el INEI.
 
-### Descripción del diseño
+## Descripción del diseño
 
--   Tipo de muestreo: probabilístico, estratificado, multietápico.
--   Unidades de muestreo (UPM, UMS, hogares, personas).
--   Estratificación (urbano/rural, región natural, tamaño de población).
--   Factor de expansión (peso de encuesta).
--   Periodo y cobertura geográfica.
+La Encuesta Nacional Especializada sobre Victimización (ENEVIC) 2017, ejecutada por el INEI, emplea un diseño probabilístico, estratificado, multietápico e independiente por dominio de estudio. El ámbito de inferencia es urbano nacional, con cobertura en regiones naturales, departamentos, áreas metropolitanas y 28 principales ciudades del país.
 
-### Declaración del diseño en R
+-   Unidad Primaria de Muestreo (UPM): conglomerado de viviendas.
+-   Unidad Secundaria de Muestreo (USM): vivienda particular.
+-   Unidad Terciaria de Muestreo (UTM): hogar dentro de la vivienda.
+-   Unidad de análisis: persona de 15 años y más residente habitual.
+
+La selección de UPM se realiza con probabilidad proporcional al tamaño, y las etapas subsiguientes son aleatorias simples sistemáticas. Los factores de expansión reflejan las probabilidades de selección en todas las etapas, con ajustes por no respuesta y post-estratificación a totales poblacionales del Censo 2007. El diseño incluye estratificación explícita por departamento, área urbana y tamaño de centro poblado.
+
+## Variables relevantes para declarar el diseño
+
+De acuerdo con el diccionario:
+
+| **Concepto** | **Nombre de variable** | **Fuente** |
+|-------------------|-------------------------------|----------------------|
+| **UPM** | `CONGLO` | CAP300 Persona / Hogar |
+| **Estrato** | `ESTRATO` (presente en base general) | ENEVIC marco muestral |
+| **Identificador de vivienda** | `VIV_NUM` | CAP300 Persona / Hogar |
+| **Factor de expansión** | `FACTOR` (peso final persona) | microdato persona |
+| **Departamento / Dominio** | `CCDD` o `NOMBREDD` | variables geográficas |
+| **Variable de análisis (ejemplo)** | `C300_P5_3` – robo sin violencia de objetos personales | CAP300 Persona |
+
+## Declaración del diseño en R
 
 ```{r}
-v <- 43
-b <- 45
+# --- Declaración del diseño muestral ENEVIC 2017 ---
+#library(survey)
+#library(dplyr)
+
+# base <- read.csv("ENEVIC2017_persona.csv")  # o base final unida
+
+# Mantener observaciones válidas
+#base <- base %>%
+  #filter(!is.na(FACTOR) & FACTOR > 0)
+
+# Declaración del diseño (dos etapas)
+#dis_enevic <- svydesign(
+  #ids    = ~CONGLO + VIV_NUM,  # conglomerado + vivienda
+  #strata = ~ESTRATO,
+  #weights= ~FACTOR,
+  #data   = base,
+  #nest   = TRUE
+#)
+
 
 ```
 
-### Interpretación
+### *Ejemplo de estimación*
 
-> Se comenta la implicancia del diseño sobre la precisión de los estimadores y la importancia del uso de pesos y estratos en los análisis inferenciales.
+> Estimemos la **proporción de personas víctimas de robo sin violencia** `C300_P5_3 = 1`, por **departamento**.
+
+```{r}
+# Variable binaria: víctima de robo sin violencia
+#base$victima_robo <- ifelse(base$C300_P5_3 == 1, 1, 0)
+
+# Estimación nacional
+#svymean(~victima_robo, dis_enevic, deff = TRUE, vartype = c("se", "cv"))
+
+# Estimación por departamento
+#svyby(~victima_robo, ~NOMBREDD, dis_enevic, svymean,
+      #deff = TRUE, vartype = c("se", "cv"))
+#
+```
+
+### Conlusion de ejemplo
+
+> El objeto `dis_enevic` representa el diseño complejo de la ENEVIC 2017. Los resultados (svymean, svyby) devuelven el porcentaje de personas víctimas de robo, junto con su error estándar (SE), coeficiente de variación (CV) y efecto de diseño (deff), que mide cuán eficiente es la muestra frente a un muestreo aleatorio simple.
+
+## Conclusion parcial
+
+> *La ENEVIC 2017 utiliza un diseño estratificado, multietápico y ponderado, lo que permite obtener estimaciones representativas para el área urbana nacional y dominios subnacionales. El uso de los pesos y de la estructura de conglomerados–estratos garantiza la validez inferencial y el cálculo correcto de varianzas y efectos de diseño. Las estimaciones simples sin diseño tienden a subestimar el error estándar.*
+
+------------------------------------------------------------------------
 
 # **Parte IV. Discusión aplicada (6 puntos)**
 
-### Introducción
+## Introducción
 
 > En esta sección se desarrollan dos casos aplicados vinculados al diseño y la representatividad de encuestas nacionales, con el objetivo de comunicar resultados de manera clara tanto a públicos técnicos como a tomadores de decisiones.
 
-### Pregunta 1 — Tamaño muestral y efecto de diseño
+## Pregunta 1 — Tamaño muestral y efecto de diseño
 
 **Redacción (máx. 500 palabras)**\
 Explicación intuitiva para policymakers sobre:
 
-```         
-Por qué un muestreo complejo puede requerir más tamaño que uno simple.
-```
+**En el Ministerio de Desarrollo le han encargado a usted como muestrista principal diseñar una encuesta probabilística para medir la prevalencia de vulnerabilidad a la pobreza (variable dicotómica) en todas las regiones del Perú. Su supervisor le pide justificar por qué propone un muestreo complejo en lugar de usar el tamaño de muestra sugerido en las tablas de Dillman.**
 
--   Conceptos de `n efectivo`, `ρ (intracluster)` y `deff`.
--   Implicaciones prácticas en costo y precisión.
+Las tablas de Dillman se basan en supuestos de **muestreo aleatorio simple (MAS)**, donde todas las unidades tienen la misma probabilidad de selección y las observaciones son independientes entre sí. Sin embargo, en la práctica, las encuestas nacionales —como la que mide la vulnerabilidad a la pobreza— requieren un **diseño muestral complejo**, que puede incluir **estratificación, conglomerados y ponderaciones**, para garantizar representatividad regional, eficiencia logística y menor costo.
 
-### Pregunta 2 — Estimaciones distritales en dominios menores
+Al usar conglomerados (por ejemplo, seleccionar viviendas dentro de manzanas o centros poblados), las observaciones dentro de un conglomerado tienden a ser **similares**; esta semejanza se mide mediante la **correlación intracluster (**$\rho$). Cuando $\rho>0$, cada individuo adicional dentro del conglomerado **aporta menos información independiente**, aumentando la varianza del estimador.
+
+El aumento en varianza respecto al MAS se resume en el **efecto de diseño (**$deff$):
+
+$$
+deff = \frac{Var_d(\hat{\theta})}{Var_{MAS}(\hat{\theta})}
+$$
+
+En un diseño por conglomerados, el efecto de diseño se aproxima por:
+
+$$
+deff \approx 1 + (m - 1)\rho
+$$
+
+donde $m$ es el tamaño promedio del conglomerado.\
+Si $\rho$ es positivo, el $deff$ supera 1, y el tamaño de muestra “efectivo” ($n_{ef}$) disminuye:
+
+$$
+n_{ef} = \frac{n}{deff}
+$$
+
+Por ejemplo, si $deff = 1.5$, una muestra nominal de 1,500 personas equivale a solo 1,000 observaciones efectivas. Para alcanzar la misma precisión que en un MAS, debe **aumentarse el tamaño muestral nominal**.
+
+Además, las ponderaciones y la estratificación generan varianzas desiguales entre subpoblaciones, lo cual también influye en el cálculo de errores estándar. Por ello, usar directamente las tablas de Dillman subestimaría el tamaño requerido y produciría **márgenes de error mayores a los deseados**.
+
+**En conclusión**, los diseños complejos requieren mayor tamaño muestral porque las observaciones no son completamente independientes y los errores estándar deben reflejar la correlación intracluster y las ponderaciones del diseño. El **tamaño de muestra efectivo** depende del $deff$, por lo que se ajusta el $n$ para garantizar la precisión deseada. Este ajuste asegura resultados válidos y comparables entre regiones, aún bajo un esquema estratificado y multietápico.
+
+## Pregunta 2 — Estimaciones distritales en dominios menores
 
 **Redacción (máx. 500 palabras)**
 
--   Explicación de por qué no se puede inferir distritalmente con la ENA.
--   Introducción a modelos SAE (*Fay-Herriot*, *EBLUP*, *Bayesianos*).
--   Ejemplo de uso de información auxiliar (censos, registros, teledetección).
+**Un policymaker que cuenta con conocimientos intermedios de estadística le pide que utilice la Encuesta Nacional Agropecuaria (ENA 2024) para obtener estadísticas distritales de acceso a asistencia técnica en agricultores de Ayacucho. Explique si esto es posible y por qué. Considere en su respuesta mencionar qué tipo de técnicas, modelos y bases de datos adicionales se podrían utilizar para obtener estimaciones en estos dominios menores (distritos).**
+
+La **Encuesta Nacional Agropecuaria (ENA 2024)** fue diseñada por el INEI con un **muestreo probabilístico, estratificado y multietápico**, cuyo nivel de representatividad llega hasta el **ámbito departamental**, no distrital.\
+Esto significa que la muestra se planificó para producir resultados confiables a nivel **nacional y por departamento**, pero no para cada distrito, donde el número de productores entrevistados es muy pequeño o incluso nulo.
+
+En encuestas de este tipo, la **precisión de las estimaciones** depende del tamaño de muestra disponible en cada área ($n_d$):\
+cuantas menos observaciones haya, **mayor será la variabilidad o error** de las cifras estimadas.\
+En términos sencillos:
+
+$$
+Var(\hat{\theta}_d) \propto \frac{1}{n_d}
+$$
+
+Si en un distrito solo se entrevistaron unos pocos productores, el **error estándar** crece y el resultado deja de ser confiable.\
+Por eso, aunque el INEI recoja información en varios distritos, el diseño no garantiza que esas cifras puedan **generalizarse estadísticamente** a todos los agricultores del distrito.
+
+## ¿Qué se puede hacer en su lugar?
+
+Existen técnicas estadísticas llamadas **Estimación en Dominios Pequeños (Small Area Estimation, SAE)**, que combinan la información limitada de la encuesta con **fuentes externas más completas** (por ejemplo, censos o registros administrativos).\
+De esta manera se “fortalece” la estimación, reduciendo la variabilidad sin necesidad de volver a encuestar a más personas.
+
+Un modelo básico de este enfoque es el **modelo de área Fay–Herriot**, que se expresa como:
+
+$$
+\hat{\theta}_d = x_d'\beta + u_d + e_d
+$$
+
+Donde: - $\hat{\theta}_d$ es la estimación del distrito (por ejemplo, porcentaje de productores con asistencia técnica).\
+- $x_d$ representa información auxiliar (por ejemplo, superficie agrícola, número de productores o acceso a crédito del **Censo Agropecuario**).\
+- $u_d$ y $e_d$ son errores que capturan las diferencias entre distritos y el error de muestreo, respectivamente.
+
+El modelo “aprende” la relación entre la variable de interés y la información auxiliar, y **predice valores más estables** para cada distrito.\
+Así, si en un distrito se encuestaron pocos productores, el modelo usa los datos de distritos similares (y de los censos) para mejorar la precisión de la estimación.
+
+## Fuentes de datos que podrían emplearse
+
+-   **Censo Nacional Agropecuario (CENAGRO 2012 o 2022)**: proporciona información exhaustiva sobre todas las unidades agropecuarias.
+-   **Registros del MIDAGRI**: asistencia técnica, uso de riego, créditos o maquinaria.
+-   **Datos geográficos y climáticos** (SENAMHI, CONIDA, imágenes satelitales): altitud, precipitación, productividad del suelo.
+
+### Conclusión Parcial
+
+No es posible estimar de forma directa indicadores distritales de acceso a asistencia técnica usando la **ENA 2024**, porque su diseño muestral no lo permite: la muestra no tiene suficiente tamaño ni estructura para representar cada distrito.\
+Sin embargo, utilizando **modelos de estimación en dominios pequeños (SAE)** y apoyándose en fuentes censales y administrativas, se pueden obtener **estimaciones distritales más precisas y útiles para la formulación de políticas públicas**, sin perder el sustento estadístico del diseño original de la encuesta.
+
+------------------------------------------------------------------------
 
 # **Conclusiones generales**
 
-> Resumen de aprendizajes conceptuales y prácticos: - Importancia del diseño muestral en la precisión. - Utilidad de los métodos de estratificación y ponderación. - Valor del enfoque probabilístico para garantizar inferencia válida. - Relevancia de la comunicación técnica adaptada a diferentes públicos. - Aplicación de métodos avanzados para estimaciones en dominios pequeños.
+> Falta ...
