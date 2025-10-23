@@ -1,22 +1,24 @@
 ---
-title: "Evaluación 2 – Curso Métodos de Estimación Estadística"
+title: "Evaluación 2 - Curso Métodos de Estimación Estadística"
 author:
-  - "CABALLERO CHOCANO RODRIGO FERNANDO"
-  - "CUEVA MENDOZA JHERSON ALDAIR"
-  - "HIDALGO ECHE DIANA EVELYN"
-  - "LLARO CASTRO DIEGO RENATO"
-  - "SEBASTIAN RIOS WILDER TEDDY"
+  - name: "Caballero Chocano, Rodrigo Fernando"
+  - name: "Cueva Mendoza, Jherson Aldair"
+  - name: "Hidalgo Eche, Diana Evelyn"
+  - name: "Llaro Castro, Diego Renato"
+  - name: "Sebastian Rios, Wilder Teddy"
 format: pdf
 editor: visual
 ---
 
-# Resumen ejecutivo
+------------------------------------------------------------------------
+
+# Resumen
 
 > Este informe presenta el desarrollo integral de la Evaluación 2 del curso Métodos de Estimación Estadística. Se abordan conceptos teóricos sobre poblaciones, estratos y diseños muestrales, la aplicación práctica de un muestreo estratificado usando datos censales de Lima Metropolitana, la declaración del diseño muestral de una encuesta del INEI, y la discusión de casos aplicados sobre tamaño muestral y estimaciones en dominios pequeños. Los resultados obtenidos reflejan la importancia del diseño muestral en la precisión y representatividad de las estimaciones.
 
 ------------------------------------------------------------------------
 
-# **Parte I. Fundamentos conceptuales (4 puntos)**
+# **Parte I. Fundamentos conceptuales**
 
 ## Introducción teórica
 
@@ -28,7 +30,9 @@ Breve presentación del objetivo de esta sección:
 
 **¿Qué esperaría que ocurra con la varianza de una variable cuando se aplique un muestreo aleatorio estratificado (MAE) en lugar de un muestreo aleatorio simple (MAS)? ¿Por qué?**\
 
-> Al aplicar un muestreo aleatorio estratificado, se espera que la varianza de las estimaciones disminuya respecto a un muestreo aleatorio simple. Esto ocurre porque los estratos agrupan unidades internamente homogéneas y externamente diferentes, reduciendo la variabilidad dentro de cada subgrupo. Por ejemplo, al estimar el ingreso medio dividiendo la población por nivel educativo, se obtiene menor dispersión dentro de cada estrato y, por tanto, un estimador más preciso y eficiente. En síntesis, el MAE mejora la precisión al aprovechar información estructural de la población. Nota: *se añade un ejemplo simple.*
+> Al aplicar un muestreo aleatorio estratificado, se espera que la varianza de las estimaciones disminuya respecto a un muestreo aleatorio simple. Esto ocurre porque los estratos agrupan unidades internamente homogéneas y externamente diferentes, reduciendo la variabilidad dentro de cada subgrupo. Por ejemplo, al estimar el ingreso medio dividiendo la población por nivel educativo, se obtiene menor dispersión dentro de cada estrato y, por tanto, un estimador más preciso y eficiente. En síntesis, el MAE mejora la precisión al aprovechar información estructural de la población.
+>
+> Nota: *se añade un ejemplo\*.*
 
 ```{r}
 # para ejemplificar la resuesta usamos este ejemplo de juguete. 
@@ -103,8 +107,8 @@ legend("topright", legend = c("MAS", "MAE", "Media poblacional"),
 **¿En qué caso el muestreo aleatorio por conglomerados tiende a aumentar la precisión de las estimaciones?**\
 
 > El muestreo por conglomerados tiende a aumentar la precisión solo cuando los conglomerados son internamente heterogéneos y entre ellos homogéneos. En ese escenario, cada conglomerado representa bien la diversidad de la población. Por ejemplo, al estimar el nivel de alfabetización seleccionando manzanas urbanas donde conviven diversos grupos socioeconómicos, cada conglomerado captura gran parte de la variabilidad total. Sin embargo, si los conglomerados son muy homogéneos internamente (por ejemplo, barrios segregados), la correlación intracluster aumenta y la precisión disminuye. Por ello, su eficiencia depende directamente de la estructura de variabilidad poblacional.
-
-*(Puedes añadir tablas o esquemas ilustrativos si ayudan a la claridad conceptual.)*
+>
+> > Nota: *se añade un ejemplo\*.*
 
 ```{r}
 set.seed(2025)
@@ -158,7 +162,7 @@ legend("topleft", legend=c("Cluster","MAS"),
 
 ------------------------------------------------------------------------
 
-# **Parte II. Aplicación práctica con datos censales (7 puntos)**
+# **Parte II. Aplicación práctica con datos censales**
 
 ## Objetivo
 
@@ -180,36 +184,314 @@ legend("topleft", legend=c("Cluster","MAS"),
 
 ## Código R (documentado y comentado)
 
+> *En esta primera parte del código, se cargan las librerías necesarias para el análisis.* *Luego, se establece el directorio de trabajo y se carga la base del Censo Nacional de Población y Vivienda 2017 filtrado para Lima Metropolitana. Debido que, esta base representa el marco poblacional sobre el cual se aplicará el diseño muestral*
+
 ```{r}
-x <- 2
-y <- 5
-z <- x+y
-z
+# -----------------------------------------------
+# (1) Carga y directorio
+# -----------------------------------------------
 
-# Cargar paquetes
-library(dplyr)
-library(survey)
+## Carga de paquetes
 
-# Definir variables
+suppressPackageStartupMessages({
+  library(arrow)
+  library(dplyr)
+  library(survey)
+  library(stringr)
+})
+
+# Directorio
+setwd("C:/Users/pc/Desktop/PEU DATA SCIENCE INEI/PEU INEI/Met_Estadistica_Cozzubo/MET_ESTADISTICA/PD/Evaluacion2_Metodos_Estimacion")
+
+# Cargam Censo 2017 filtrado a Lima Metropolitana
+
+censo <- read_parquet("cpv2017_pob 1214 Lima.parquet")
+
+```
+
+> *En este bloque se genera la variable “trabaja”, que toma el valor 1 si la persona trabajó y 0 si no lo hizo.* *De esta manera, se estandariza la información y se obtiene una variable binaria homogénea que permitirá identificar la condición laboral de cada persona.*
+
+```{r}
+# ---------------------------------------------------------------
+# (2) VARIABLE DICOTÓMICA 'trabaja' (1 = Sí, 0 = No)
+# ---------------------------------------------------------------
+censo <- censo %>%
+  mutate(
+    trabaja = case_when(
+      is.numeric(c5_p16) & c5_p16 == 1 ~ 1L,
+      is.numeric(c5_p16) & c5_p16 == 2 ~ 0L,
+      !is.numeric(c5_p16) & grepl("^si", tolower(as.character(c5_p16))) ~ 1L,
+      !is.numeric(c5_p16) & grepl("^no", tolower(as.character(c5_p16))) ~ 0L,
+      TRUE ~ NA_integer_
+    )
+  )
+```
+
+> Aquí se construye la variable “edad” a partir de la variable original c5_p4_1. Este paso garantiza que la variable “edad” esté correctamente tipificada como numérica, lo cual es indispensable para definir los grupos etarios.
+
+```{r}
+# ---------------------------------------------------------------
+# (3) VARIABLE NUMÉRICA 'edad' A PARTIR DE c5_p4_1
+# ---------------------------------------------------------------
+censo <- censo %>%
+  mutate(
+    edad = suppressWarnings(
+      as.integer(gsub("[^0-9]", "", as.character(c5_p4_1))))
+  )
+```
+
+> En esta parte, se agrupa la población en cuatro categorías etarias según los rangos establecidos en el enunciado: El resultado es la creación de la variable “grupo_edad”, que será el estrato principal del diseño muestral.
+
+```{r}
+# ---------------------------------------------------------------
+# (4) CREAR 'grupo_edad'
+# ---------------------------------------------------------------
+censo <- censo %>%
+  mutate(
+    grupo_edad = case_when(
+      edad < 15 ~ "Menores de 15",
+      edad >= 15 & edad <= 30 ~ "15 a 30",
+      edad > 30  & edad <= 65 ~ "30 a 65",
+      edad > 65 ~ "Más de 65",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(trabaja), !is.na(edad), !is.na(grupo_edad))
+```
+
+> Se fija una semilla con el año actual (2025) para garantizar reproducibilidad. Esto asegura que los resultados del muestreo aleatorio sean siempre los mismos al ejecutar nuevamente el código.
+
+```{r}
+# ---------------------------------------------------------------
+# (5) FIJAR SEMILLA (AÑO ACTUAL)
+# ---------------------------------------------------------------
 set.seed(2025)
-# ...
+```
+
+> El código realiza un muestreo estratificado con asignación proporcional, donde cada grupo de edad recibe una cantidad de observaciones acorde a su peso en la población. Esto asegura una muestra representativa y equilibrada, evita la sobrerrepresentación de estratos pequeños y mejora la precisión de las estimaciones, manteniendo la estructura real de la población de Lima Metropolitana.
+
+```{r}
+# ---------------------------------------------------------------
+# (6) MUESTREO ESTRATIFICADO (asignación proporcional)
+# ---------------------------------------------------------------
+N_total <- nrow(censo)
+Nh_tab  <- table(censo$grupo_edad)
+Nh      <- as.integer(Nh_tab); names(Nh) <- names(Nh_tab)
+
+# Tamaño muestral total (1% del total o al menos 400)
+n_total <- max(400, ceiling(0.01 * N_total))
+
+# Asignación proporcional
+nh <- round(Nh / sum(Nh) * n_total)
+nh <- pmax(nh, 30)  # mínimo 30 por estrato
+names(nh) <- names(Nh)
+
+# Muestreo SRSsr dentro de cada estrato
+muestra_idx <- unlist(lapply(names(nh), function(k) {
+  ids <- which(censo$grupo_edad == k)
+  sample(ids, nh[k], replace = FALSE)
+}))
+muestra <- censo[muestra_idx, , drop = FALSE]
+```
+
+> El código define el diseño muestral estratificado por grupo de edad, asignando pesos de expansión para proyectar los resultados a la población total. Con este diseño, se estiman de forma representativa el porcentaje y el total de personas que trabajan en Lima Metropolitana, asegurando precisión y validez estadística en las inferencias del estudio.
+
+```{r}
+# ---------------------------------------------------------------
+# (7) DECLARAR DISEÑO MUESTRAL Y ESTADÍSTICAS
+# ---------------------------------------------------------------
+Nh_df <- data.frame(grupo_edad = names(Nh), Nh = as.integer(Nh))
+muestra <- muestra %>%
+  left_join(Nh_df, by = "grupo_edad") %>%
+  mutate(
+    nh  = unname(nh[as.character(grupo_edad)]),
+    w   = Nh / nh,
+    fpc = Nh
+  )
+
+# Diseño estratificado
+diseMAE <- svydesign(
+  ids     = ~1,
+  strata  = ~grupo_edad,
+  weights = ~w,
+  fpc     = ~fpc,
+  data    = muestra
+)
+
+# (7a) Porcentaje que trabaja por grupo de edad
+por_trabaja_por_edad <- svyby(
+  ~trabaja, ~grupo_edad, diseMAE, svymean,
+  vartype = c("se","ci"), level = 0.95, na.rm = TRUE
+) %>%
+  mutate(
+    porcentaje = trabaja * 100,
+    se_pct     = se * 100,
+    ic95_l     = ci_l * 100,
+    ic95_u     = ci_u * 100
+  ) %>%
+  select(grupo_edad, porcentaje, se_pct, ic95_l, ic95_u)
+
+# (7b) Total de personas que trabajan
+total_trabaja <- svytotal(
+  ~trabaja, diseMAE,
+  vartype = c("se","ci"), level = 0.95, na.rm = TRUE
+)
+
+```
+
+> Finalmente, se calcula el efecto de diseño por cada grupo etario, a partir de subdiseños que aíslan cada estrato. Esto permite evaluar si la eficiencia del diseño varía entre grupos de edad, por ejemplo, si los adultos presentan una varianza más homogénea que los jóvenes o los mayores.
+
+```{r}
+# ---------------------------------------------------------------
+# (8) CALCULAR EL EFECTO DE DISEÑO (deff) POR ESTRATO
+# ---------------------------------------------------------------
+# (a) deff global
+mae_total <- svymean(~trabaja, diseMAE, deff = "srs", na.rm = TRUE)
+deff_total <- survey::deff(mae_total)
+
+# (b) deff para cada estrato (subdiseño)
+deff_por_grupo <- lapply(split(
+  muestra, muestra$grupo_edad), function(df_str) 
+    {
+  dis_str <- subset(diseMAE, grupo_edad == unique(df_str$grupo_edad))
+  mae_str <- svymean(~trabaja, dis_str, deff = "srs", na.rm = TRUE)
+  c(Grupo = unique(df_str$grupo_edad), 
+    n = unique(df_str$nh),
+    Nh = unique(df_str$Nh),
+    deff = round(as.numeric(survey::deff(mae_str)), 5))
+})
+deff_por_grupo <- do.call(rbind, deff_por_grupo)
 ```
 
 ## Resultados
 
 -   Tabla 1: % de personas que trabajan por grupo de edad
+
+```{r}
+library(knitr)
+
+# (7a) Porcentaje por grupo de edad
+cat("### (7a) Porcentaje que trabaja por grupo de edad\n")
+kable(
+  por_trabaja_por_edad,
+  caption = "Porcentaje de 
+  personas que trabajan por grupo de edad en Lima Metropolitana",
+  digits = 2,
+  align = "lcccc"
+)
+
+```
+
+> Los resultados muestran que la participación laboral en Lima Metropolitana se concentra principalmente en el grupo de 30 a 65 años, donde el 68.4% de las personas se encuentra trabajando. Le sigue el grupo de 15 a 30 años con 48.2%, mientras que los mayores de 65 años presentan una participación de 21.5%, y los menores de 15 años apenas alcanzan el 0.34%. Esta distribución refleja un patrón laboral esperado: los adultos en edad productiva son quienes tienen mayor inserción en el mercado de trabajo, mientras que los extremos etarios (niños y adultos mayores) muestran una presencia marginal por razones de estudio, retiro o inactividad económica.
+
 -   Tabla 2: Total estimado de personas que trabajan en Lima Metropolitana
+
+```{r}
+
+# (7b) Total de personas que trabajan
+cat("\n### (7b) Total de personas que trabajan en Lima Metropolitana\n")
+kable(
+  as.data.frame(total_trabaja),
+  caption = "Total expandido de personas 
+  que trabajan (con error estándar e IC95%)",
+  digits = 2
+)
+```
+
+> El total expandido indica que aproximadamente 4,193,503 personas trabajan en Lima Metropolitana, con un error estándar de 12,825 personas, lo que demuestra una alta precisión estadística del estimador. Este resultado es coherente con el tamaño de la población económicamente activa de la capital, que concentra la mayor parte del empleo nacional. El bajo error relativo evidencia que la estimación es robusta y que el diseño muestral permitió representar de manera adecuada el total de personas ocupadas en la ciudad.
+
 -   Tabla 3: Efecto de diseño (deff) respecto al MAS
 
+```{r}
+# (8) Efecto de diseño
+cat("\n### (8) Efecto de diseño (deff)\n")
+cat("**Global:**\n")
+kable(as.data.frame(deff_total), digits = 8)
+cat("\n**Por grupo (estrato):**\n")
+kable(as.data.frame(deff_por_grupo), digits = 5)
+```
+
+> El efecto de diseño global obtenido (deff = 0.75) indica que el diseño estratificado fue más eficiente que un muestreo aleatorio simple (MAS), ya que redujo la varianza de las estimaciones en aproximadamente un 25%. Esto significa que la estratificación por edad contribuyó a mejorar la precisión de las estimaciones de empleo, al agrupar unidades con características similares en términos de participación laboral, reduciendo así la variabilidad dentro de los estratos.
+
+```{r}
+# ============================================================
+# VISUALIZACIÓN FINAL DEL EFECTO DE DISEÑO (deff)
+# ============================================================
+
+library(ggplot2)
+library(scales)
+library(dplyr)
+
+# estructura
+deff_por_grupo_df <- as.data.frame(deff_por_grupo) %>%
+  mutate(
+    deff = as.numeric(deff),
+    deff_label = sprintf("%.8f", deff)
+  )
+
+# deff global
+deff_global_val <- round(as.numeric(deff_total), 8)
+
+# gráfico
+ggplot(deff_por_grupo_df, aes(x = reorder(Grupo, deff), y = deff)) +
+  geom_col(fill = "#4C72B0", width = 0.65, alpha = 0.9) +
+  geom_text(aes(label = deff_label),
+            vjust = -0.4, color = "#222222", size = 4, fontface = "bold") +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "gray40") +
+  geom_hline(yintercept = deff_global_val,
+             color = "darkred", linetype = "dashed", linewidth = 1) +
+  annotate("label",
+           x = Inf, y = deff_global_val,
+           label = paste0(" deff global = ", deff_global_val),
+           color = "white", fill = "darkred", hjust = 1.1, vjust = 0.5,
+           fontface = "bold", size = 4.2, label.size = 0) +
+  scale_y_continuous(
+    limits = c(0, max(deff_por_grupo_df$deff) * 1.25),
+    breaks = pretty_breaks(6),
+    expand = expansion(mult = c(0, 0.05))
+  ) +
+  labs(
+    title = "Efecto de diseño (deff) por grupo de edad",
+    subtitle = "Comparación del diseño estratificado vs. 
+    Muestreo Aleatorio Simple (MAS)",
+    x = "Grupo de edad",
+    y = "Efecto de diseño (deff)",
+    caption = "Nota: deff = Varianza del diseño / 
+    Varianza del MAS. Valores <1 
+    indican mayor eficiencia del diseño."
+  ) +
+  theme_minimal(base_family = "sans", base_size = 13) +
+  theme(
+    plot.title = element_text(
+      face = "bold", color = "#2C3E50", size = 16, hjust = 0.5),
+    plot.subtitle = element_text(
+      color = "#555555", size = 12, hjust = 0.5),
+    axis.title.x = element_text(
+      face = "bold", size = 12, margin = margin(t = 10)),
+    axis.title.y = element_text(
+      face = "bold", size = 12, margin = margin(r = 10)),
+    axis.text = element_text(
+      color = "#333333", size = 11),
+    panel.grid.major.y = element_line(color = "gray85"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    plot.caption = element_text(size = 9, color = "gray40", hjust = 0),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+
+```
+
+> El resultado del efecto de diseño igual a 1 (deff = 1) en todos los grupos de edad se explica por la forma en que se realizó el muestreo estratificado con asignación proporcional en el código del paso (6). En este procedimiento, el tamaño de muestra asignado a cada estrato fue proporcional a su peso poblacional (`nh = Nh / sum(Nh) * n_total`), garantizando que todos los grupos mantuvieran su representatividad real y un número suficiente de observaciones. Esta estructura equilibrada y homogénea dentro de los estratos redujo la variabilidad interna y evitó distorsiones en la estimación de la varianza, lo que se refleja en un deff = 1, indicando que el diseño fue eficiente y bien calibrado respecto al muestreo aleatorio simple.
+
 ------------------------------------------------------------------------
 
-## Comentario analítico
+## Comentario analítico parcial de la parte II
 
-> Discusión breve sobre cómo el estratificado mejora la precisión (menor varianza) y cómo el deff refleja el impacto del diseño sobre la eficiencia del muestreo.
+> El diseño muestral estratificado por edad aplicado al Censo 2017 para Lima Metropolitana permitió obtener estimaciones representativas, precisas y eficientes del empleo. Los adultos en edad productiva (30–65 años) son quienes sostienen la mayor parte del empleo metropolitano, mientras que los jóvenes y adultos mayores presentan menores tasas de participación. La eficiencia estadística observada (deff \< 1) confirma que la estratificación por edad optimizó la precisión de los resultados sin incrementar el error muestral.
 
 ------------------------------------------------------------------------
 
-# **Parte III. Diseño muestral de una encuesta del INEI (3 puntos)**
+# **Parte III. Diseño muestral de una encuesta del INEI**
 
 ## Introducción
 
@@ -291,20 +573,15 @@ De acuerdo con el diccionario:
 
 ------------------------------------------------------------------------
 
-# **Parte IV. Discusión aplicada (6 puntos)**
+# **Parte IV. Discusión aplicada**
 
 ## Introducción
 
 > En esta sección se desarrollan dos casos aplicados vinculados al diseño y la representatividad de encuestas nacionales, con el objetivo de comunicar resultados de manera clara tanto a públicos técnicos como a tomadores de decisiones.
 
-## Pregunta 1 — Tamaño muestral y efecto de diseño
+## Pregunta 1 - Tamaño muestral y efecto de diseño
 
-**Redacción (máx. 500 palabras)**\
-Explicación intuitiva para policymakers sobre:
-
-**En el Ministerio de Desarrollo le han encargado a usted como muestrista principal diseñar una encuesta probabilística para medir la prevalencia de vulnerabilidad a la pobreza (variable dicotómica) en todas las regiones del Perú. Su supervisor le pide justificar por qué propone un muestreo complejo en lugar de usar el tamaño de muestra sugerido en las tablas de Dillman.**
-
-Las tablas de Dillman se basan en supuestos de **muestreo aleatorio simple (MAS)**, donde todas las unidades tienen la misma probabilidad de selección y las observaciones son independientes entre sí. Sin embargo, en la práctica, las encuestas nacionales —como la que mide la vulnerabilidad a la pobreza— requieren un **diseño muestral complejo**, que puede incluir **estratificación, conglomerados y ponderaciones**, para garantizar representatividad regional, eficiencia logística y menor costo.
+Las tablas de Dillman se basan en supuestos de **muestreo aleatorio simple (MAS)**, donde todas las unidades tienen la misma probabilidad de selección y las observaciones son independientes entre sí. Sin embargo, en la práctica, las encuestas nacionales (como la que mide la vulnerabilidad a la pobreza) requieren un **diseño muestral complejo**, que puede incluir **estratificación, conglomerados y ponderaciones**, para garantizar representatividad regional, eficiencia logística y menor costo.
 
 Al usar conglomerados (por ejemplo, seleccionar viviendas dentro de manzanas o centros poblados), las observaciones dentro de un conglomerado tienden a ser **similares**; esta semejanza se mide mediante la **correlación intracluster (**$\rho$). Cuando $\rho>0$, cada individuo adicional dentro del conglomerado **aporta menos información independiente**, aumentando la varianza del estimador.
 
@@ -333,11 +610,7 @@ Además, las ponderaciones y la estratificación generan varianzas desiguales en
 
 **En conclusión**, los diseños complejos requieren mayor tamaño muestral porque las observaciones no son completamente independientes y los errores estándar deben reflejar la correlación intracluster y las ponderaciones del diseño. El **tamaño de muestra efectivo** depende del $deff$, por lo que se ajusta el $n$ para garantizar la precisión deseada. Este ajuste asegura resultados válidos y comparables entre regiones, aún bajo un esquema estratificado y multietápico.
 
-## Pregunta 2 — Estimaciones distritales en dominios menores
-
-**Redacción (máx. 500 palabras)**
-
-**Un policymaker que cuenta con conocimientos intermedios de estadística le pide que utilice la Encuesta Nacional Agropecuaria (ENA 2024) para obtener estadísticas distritales de acceso a asistencia técnica en agricultores de Ayacucho. Explique si esto es posible y por qué. Considere en su respuesta mencionar qué tipo de técnicas, modelos y bases de datos adicionales se podrían utilizar para obtener estimaciones en estos dominios menores (distritos).**
+## Pregunta 2 - Estimaciones distritales en dominios menores
 
 La **Encuesta Nacional Agropecuaria (ENA 2024)** fue diseñada por el INEI con un **muestreo probabilístico, estratificado y multietápico**, cuyo nivel de representatividad llega hasta el **ámbito departamental**, no distrital.\
 Esto significa que la muestra se planificó para producir resultados confiables a nivel **nacional y por departamento**, pero no para cada distrito, donde el número de productores entrevistados es muy pequeño o incluso nulo.
@@ -379,11 +652,7 @@ Así, si en un distrito se encuestaron pocos productores, el modelo usa los dato
 
 ### Conclusión Parcial
 
-No es posible estimar de forma directa indicadores distritales de acceso a asistencia técnica usando la **ENA 2024**, porque su diseño muestral no lo permite: la muestra no tiene suficiente tamaño ni estructura para representar cada distrito.\
-Sin embargo, utilizando **modelos de estimación en dominios pequeños (SAE)** y apoyándose en fuentes censales y administrativas, se pueden obtener **estimaciones distritales más precisas y útiles para la formulación de políticas públicas**, sin perder el sustento estadístico del diseño original de la encuesta.
+> No es posible estimar de forma directa indicadores distritales de acceso a asistencia técnica usando la **ENA 2024**, porque su diseño muestral no lo permite: la muestra no tiene suficiente tamaño ni estructura para representar cada distrito.\
+> Sin embargo, utilizando **modelos de estimación en dominios pequeños (SAE)** y apoyándose en fuentes censales y administrativas, se pueden obtener **estimaciones distritales más precisas y útiles para la formulación de políticas públicas**, sin perder el sustento estadístico del diseño original de la encuesta.
 
 ------------------------------------------------------------------------
-
-# **Conclusiones generales**
-
-> Falta ...
